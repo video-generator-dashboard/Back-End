@@ -1,9 +1,10 @@
+from csv import Error
 from click import prompt
 from sqlalchemy.orm import Session
 from fastapi import APIRouter
-from ....schemas.video import GeneralVideoFormat, videoCreate
+from ....schemas.video import GeneralVideoFormat, UpdateVideoFormat, VideoDetailInfo, videoCreate
 from ....schemas.user import SessionUser
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from ....db.database import get_session_db
 from ....models.video import VideoModel
 from ....models.user import UserModel
@@ -46,4 +47,41 @@ async def create_video(
 
     return GeneralVideoFormat.model_validate(_video)
     
+
+@router.get('/recent')
+async def recent_videos(
+    db : Session = Depends(get_session_db)
+) -> list[GeneralVideoFormat]:
+    
+    _videos = db.query(VideoModel).order_by(VideoModel.created_at.desc()).limit(4).all()
+
+    videos = [GeneralVideoFormat.model_validate(video) for video in _videos]    
+
+    return videos
+
+
+
+@router.get("/{id}")
+async def get_vide_with_id(
+    id : int,
+    db : Session = Depends(get_session_db)
+) -> GeneralVideoFormat:
+    
+    video = db.query(VideoModel).filter(VideoModel.id == id).first()
+
+    if not video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="böyle bir video bulunamadı")
+    
+    return VideoDetailInfo.model_validate(video)
+
+
+@router.put('/{id}')
+async def update_video(
+    id : int,
+    video : UpdateVideoFormat,
+    db : Session = Depends(get_session_db)
+):
+    
+    return ""
+
     

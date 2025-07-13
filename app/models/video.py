@@ -33,7 +33,7 @@ class VideoModel(Base):
     type : Mapped[str] = mapped_column(
         String(20),
         default=Video_Type.none,nullable=True)
-    last_updated : Mapped[date] = mapped_column(default=datetime.now(), nullable=True)
+    last_updated : Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now(), nullable=True)
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True),default=datetime.now, nullable=True)
     prompt : Mapped[str] = mapped_column(Text, nullable=True)
 
