@@ -1,4 +1,5 @@
 from csv import Error
+import datetime
 from click import prompt
 from sqlalchemy.orm import Session
 from fastapi import APIRouter
@@ -78,10 +79,24 @@ async def get_vide_with_id(
 @router.put('/{id}')
 async def update_video(
     id : int,
-    video : UpdateVideoFormat,
+    video_update : UpdateVideoFormat,
     db : Session = Depends(get_session_db)
-):
+) -> GeneralVideoFormat:
     
-    return ""
+    _video = db.query(VideoModel).filter(VideoModel.id == id).first()
 
-    
+    if not _video:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video bulunamadı.")
+
+    update_data = video_update.model_dump(exclude_unset=True)
+    update_data['last_updated'] = datetime.datetime.now()
+
+    for field, value in update_data.items():
+        setattr(_video, field, value)
+
+
+    db.add(_video)
+    db.commit()
+    db.refresh(_video)
+
+    return GeneralVideoFormat.model_validate(_video)

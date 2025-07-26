@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, APIRouter, status, Response, Request
 from sqlalchemy.orm import Session
 
 from ....db.database import get_session_db
-from ....schemas.user import LoginUser, SessionUser, CreateUser, UserAll
+from ....schemas.user import LoginUser, SessionUser, CreateUser, UpdateUser, UserAll
 from ....models.user import UserModel
 from ....models.session import SessionModel
 
@@ -98,6 +98,23 @@ async def logout_user(
 async def read_current_user(
     current_user : SessionUser = Depends(get_current_user_from_session),
     db : Session = Depends(get_session_db)
-): 
+) -> UserAll : 
     user = db.query(UserModel).filter(UserModel.username == current_user.username).first()
     return UserAll.model_validate(user)
+
+
+@router.put('/updatepassword/{id}', status_code=status.HTTP_200_OK)
+async def update_password(
+    id : int,
+    user_model : UpdateUser,
+    db : Session = Depends(get_session_db)
+):
+    
+    _user = db.query(UserModel).filter(UserModel.user_id == id).first()
+
+    _user.password = get_password_hash(user_model.password)
+    
+    db.commit()
+    db.refresh(_user)
+
+    return {'message': 'Password updated successfully'}

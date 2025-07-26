@@ -14,3 +14,12 @@ __pycache__
 __pycache__/
 
 /__*
+
+
+public
+/public/
+
+.env/
+/.env
+.env
+
